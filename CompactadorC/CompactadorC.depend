@@ -1,0 +1,5 @@
+# depslib dependency file v1.0
+1571833075 source:c:\users\u18176\projeto\compactadorc\main.c
+	<stdio.h>
+	<stdlib.h>
+
