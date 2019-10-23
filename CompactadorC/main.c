@@ -23,22 +23,24 @@ int main()
     FILE *file;
     file = fopen("texto.txt", "r");
     if (file)
-        {
+    {
         while ((c = getc(file)) != EOF)
             for(int i=0; i<255; i++)
             {
-                if(noLetra[i].letra == NULL)
+                if(noLetra[i].letra == 0)
                 {
                     noLetra[i].letra = c;
                     noLetra[i].freq  = 1;
                     break;
                 }
+
                 if(noLetra[i].letra == c)
                     noLetra[i].freq += 1;
+                printf("%c", noLetra[i].letra);
 
             }
         fclose(file);
-        }
+    }
 
 
 
