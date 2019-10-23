@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#define ' ' sp
 
 int main()
 {
@@ -32,7 +31,7 @@ int main()
             {
                 if(noLetra[i].letra == 0)
                 {
-                    if(noLetra[i].letra == " ")
+
                     noLetra[i].letra = c;
                     noLetra[i].freq  = 1;
                     qtd++;
@@ -49,7 +48,6 @@ int main()
         fclose(file);
     }
     printf("Desordenado:\n");
-    for(int i = 0; i < qtd; i++)
         for(int i = 0; i < qtd; i++)
         {
             printf("%c - ", noLetra[i].letra);
