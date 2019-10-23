@@ -31,14 +31,13 @@ int main()
             {
                 if(noLetra[i].letra == 0)
                 {
-
                     noLetra[i].letra = c;
                     noLetra[i].freq  = 1;
                     qtd++;
                     break;
                 }
 
-                if(noLetra[i].letra == c)
+                if(noLetra[i].letra == c )
                 {
                     noLetra[i].freq += 1;
                     break;
