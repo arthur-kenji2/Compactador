@@ -16,8 +16,8 @@ int main()
 
     for(int i=0; i<255; i++)
     {
-        noLetra[i].letra[0] = 0;
-        noLetra[i].letra[1] = 0;
+        noLetra[i].letra[0] = '0';
+        noLetra[i].letra[1] = '0';
         noLetra[i].freq = 0;
     }
 
@@ -27,10 +27,11 @@ int main()
     file = fopen("texto.txt", "r");
     if (file)
     {
+        printf("Desordenado: \n");
         while ((c = getc(file)) != EOF)
             for(int i=0; i<255; i++)
             {
-                if(noLetra[i].letra[0] == 0)
+                if(noLetra[i].letra[0] == '0')
                 {
                     if(c == ' ')
                     {
@@ -38,13 +39,22 @@ int main()
                         noLetra[i].letra[1] = 'p';
                     }
                     else
-                        noLetra[i].letra[0] = c;
+                        if(c == '\n')
+                        {
+                            noLetra[i].letra[0] = 'e';
+                            noLetra[i].letra[1] = 't';
+                        }
+                        else
+                            noLetra[i].letra[0] = c;
                     noLetra[i].freq  = 1;
+                    printf("%c - %d\n", noLetra[i].letra[0], noLetra[i].freq);
                     qtd++;
                     break;
                 }
 
-                if(noLetra[i].letra[0] == c )
+                if(noLetra[i].letra[0] == c && noLetra[i].letra[1] == '0'
+                   || noLetra[i].letra[0] == 's' && noLetra[i].letra[1] == 'p' && c == ' '
+                   || noLetra[i].letra[0] == 'e' && noLetra[i].letra[1] == 't' && c == '\n')
                 {
                     noLetra[i].freq += 1;
                     break;
@@ -73,8 +83,6 @@ int main()
         for(int i = 0; i < qtd; i++)
         {
             printf("%c - ", noLetra[i].letra[0]);
-            if(noLetra[i].letra[1] != '0')
-                printf("%c", noLetra[i].letra[1]);
             printf("%d\n", noLetra[i].freq);
         }
 
