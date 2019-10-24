@@ -1,18 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <locale.h>
 
 int main()
 {
+    char c;
 
     typedef struct
     {
         char letra[2];
         int freq;
-    } LetraFreq;
+        struct HuffNode *esq, *dir
+    } HuffNode;
 
-    LetraFreq noLetra[255];
+
+
+
+    HuffNode noLetra[255];
     int qtd = 0;
 
+    setlocale(LC_ALL, "Portuguese");
 
     for(int i=0; i<255; i++)
     {
@@ -22,7 +29,7 @@ int main()
     }
 
 
-    char c;
+
     FILE *file;
     file = fopen("texto.txt", "r");
     if (file)
@@ -47,7 +54,17 @@ int main()
                         else
                             noLetra[i].letra[0] = c;
                     noLetra[i].freq  = 1;
-                    printf("%c - %d\n", noLetra[i].letra[0], noLetra[i].freq);
+                    if(noLetra[i].letra[1] == 'p' || noLetra[i].letra[1] == 't')
+                    {
+                        printf("%c%c - ", noLetra[i].letra[0], noLetra[i].letra[1]);
+                        printf("%d\n", noLetra[i].freq);
+                    }
+
+                    else
+                    {
+                        printf("%c - ", noLetra[i].letra[0]);
+                        printf("%d\n", noLetra[i].freq);
+                    }
                     qtd++;
                     break;
                 }
@@ -73,7 +90,7 @@ int main()
                 char h = noLetra[i].letra[1];
                 noLetra[i].freq = noLetra[j].freq;
                 noLetra[i].letra[0] = noLetra[j].letra[0];
-                noLetra[i].letra[0] = noLetra[j].letra[0];
+                noLetra[i].letra[1] = noLetra[j].letra[1];
                 noLetra[j].freq = a;
                 noLetra[j].letra[0] = c;
                 noLetra[j].letra[1] = h;
@@ -82,8 +99,17 @@ int main()
     printf("\nOrdenado:\n");
         for(int i = 0; i < qtd; i++)
         {
-            printf("%c - ", noLetra[i].letra[0]);
-            printf("%d\n", noLetra[i].freq);
+            if(noLetra[i].letra[1] == 'p' || noLetra[i].letra[1] == 't')
+            {
+                printf("%c%c - ", noLetra[i].letra[0], noLetra[i].letra[1]);
+                printf("%d\n", noLetra[i].freq);
+            }
+
+            else
+            {
+                printf("%c - ", noLetra[i].letra[0]);
+                printf("%d\n", noLetra[i].freq);
+            }
         }
 
 
