@@ -2,19 +2,107 @@
 #include <stdlib.h>
 #include <locale.h>
 
+typedef struct
+{
+    char letra[2];
+    int freq;
+    struct HuffNode *esq, *dir;
+} HuffNode;
+
+typedef struct priorityQueue
+{
+    int capacidade;
+    int primeiro;
+    int ultimo;
+    int qtd;
+    HuffNode *noLetra;
+};
+
+
+void criarFila( struct priorityQueue *f, int c ) {
+
+	f->capacidade = c;
+	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
+	f->primeiro = 0;
+	f->ultimo = -1;
+	f->qtd = 0;
+
+}
+
+void inserir( struct priorityQueue *f, HuffNode v) {
+
+	if(f->ultimo == f->capacidade-1)
+		f->ultimo = -1;
+
+	f->ultimo++;
+	f->noLetra[f->ultimo] = v;
+	f->qtd++;
+}
+
+void inserirNo( struct priorityQueue *f, int i, HuffNode no)
+{
+    if(estaVazia(&f))
+    {
+        f->qtd++;
+        f->ultimo++;
+        f->noLetra[f->ultimo] = no;
+    }
+
+    for(int j = f->qtd; j > i; i++)
+        f->noLetra[j+1] = f->noLetra[j];
+
+    f->ultimo++;
+    f->noLetra[i] = no;
+}
+
+HuffNode remover( struct priorityQueue *f ) {
+
+	HuffNode temp = f->noLetra[f->primeiro++];
+	if(f->primeiro == f->capacidade)
+		f->primeiro = 0;
+
+	f->qtd--;
+	return temp;
+
+}
+
+int getQtd( struct priorityQueue *f){
+    return f->qtd;
+}
+
+int getPrimeiro (struct priorityQueue *f)
+{
+    return f->primeiro;
+}
+
+int getUltimo (struct priorityQueue *f)
+{
+    return f->ultimo;
+}
+
+HuffNode getNoLetra (struct priorityQueue *f, int i)
+{
+    return f->noLetra[i];
+}
+
+
+
+int estaVazia( struct priorityQueue *f ) {
+
+	return (f->qtd==0);
+
+}
+
+int estaCheia( struct priorityQueue *f ) {
+
+	return (f->qtd == f->capacidade);
+}
+
+
+
 int main()
 {
     char c;
-
-    typedef struct
-    {
-        char letra[2];
-        int freq;
-        struct HuffNode *esq, *dir
-    } HuffNode;
-
-
-
 
     HuffNode noLetra[255];
     int qtd = 0;
@@ -23,18 +111,15 @@ int main()
 
     for(int i=0; i<255; i++)
     {
+        noLetra[i].freq = 0;
         noLetra[i].letra[0] = '0';
         noLetra[i].letra[1] = '0';
-        noLetra[i].freq = 0;
     }
-
-
 
     FILE *file;
     file = fopen("texto.txt", "r");
     if (file)
     {
-        printf("Desordenado: \n");
         while ((c = getc(file)) != EOF)
             for(int i=0; i<255; i++)
             {
@@ -54,17 +139,6 @@ int main()
                         else
                             noLetra[i].letra[0] = c;
                     noLetra[i].freq  = 1;
-                    if(noLetra[i].letra[1] == 'p' || noLetra[i].letra[1] == 't')
-                    {
-                        printf("%c%c - ", noLetra[i].letra[0], noLetra[i].letra[1]);
-                        printf("%d\n", noLetra[i].freq);
-                    }
-
-                    else
-                    {
-                        printf("%c - ", noLetra[i].letra[0]);
-                        printf("%d\n", noLetra[i].freq);
-                    }
                     qtd++;
                     break;
                 }
@@ -96,25 +170,62 @@ int main()
                 noLetra[j].letra[1] = h;
             }
 
+     int freqTotal = 0;
     printf("\nOrdenado:\n");
         for(int i = 0; i < qtd; i++)
         {
+
             if(noLetra[i].letra[1] == 'p' || noLetra[i].letra[1] == 't')
             {
                 printf("%c%c - ", noLetra[i].letra[0], noLetra[i].letra[1]);
                 printf("%d\n", noLetra[i].freq);
+                freqTotal += noLetra[i].freq;
             }
-
             else
             {
                 printf("%c - ", noLetra[i].letra[0]);
                 printf("%d\n", noLetra[i].freq);
+                freqTotal += noLetra[i].freq;
             }
         }
 
+        printf("\nfrequencia total:%d", freqTotal);
 
+    HuffNode noArvore;
 
+    struct priorityQueue fila;
 
+    criarFila(&fila, 256);
+
+    for(int i = 0; i < qtd; i++)
+        inserir(&fila, noLetra[i]);
+
+    for(int i = 0; getQtd(&fila) != 1; i += 2)
+    {
+        HuffNode no1 = remover(&fila);
+        HuffNode no2 = remover(&fila);
+
+        noArvore.freq += no1.freq;
+        noArvore.freq += no2.freq;
+
+        noArvore.esq = &no1;
+        noArvore.dir = &no2;
+
+        HuffNode no;
+        for(int i = getPrimeiro(&fila); i < getQtd(&fila); i++)
+        {
+            no = getNoLetra(&fila, i);
+            if(noArvore.freq < no.freq)
+            {
+                inserirNo(&fila, i - 1, noArvore);
+                break;
+            }
+        }
+    }
+    printf("%d", noArvore.esq.freq);
+    printf("\nfrequencia total: %d", noArvore.freq);
+
+    //free();
 
     return 0;
 }
