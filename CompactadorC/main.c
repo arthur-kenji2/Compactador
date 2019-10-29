@@ -19,7 +19,8 @@ typedef struct priorityQueue
 };
 
 
-void criarFila( struct priorityQueue *f, int c ) {
+void criarFila( struct priorityQueue *f, int c )
+{
 
 	f->capacidade = c;
 	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
@@ -29,7 +30,13 @@ void criarFila( struct priorityQueue *f, int c ) {
 
 }
 
-void inserir( struct priorityQueue *f, HuffNode v) {
+void inserir( struct priorityQueue *f, HuffNode v)
+{
+
+    for(int i = 0; i<f.qtd;i++)
+    {
+        if(v.freq < f.)
+    }
 
 	if(f->ultimo == f->capacidade-1)
 		f->ultimo = -1;
@@ -192,6 +199,7 @@ int main()
         printf("\nfrequencia total:%d", freqTotal);
 
     HuffNode noArvore;
+    noArvore.freq = 0;
 
     struct priorityQueue fila;
 
@@ -202,6 +210,7 @@ int main()
 
     for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
+
         HuffNode no1 = remover(&fila);
         HuffNode no2 = remover(&fila);
 
@@ -211,18 +220,9 @@ int main()
         noArvore.esq = &no1;
         noArvore.dir = &no2;
 
-        HuffNode no;
-        for(int i = getPrimeiro(&fila); i < getQtd(&fila); i++)
-        {
-            no = getNoLetra(&fila, i);
-            if(noArvore.freq < no.freq)
-            {
-                inserirNo(&fila, i - 1, noArvore);
-                break;
-            }
-        }
+        inserir(&fila, noArvore);
+
     }
-    printf("%d", noArvore.esq.freq);
     printf("\nfrequencia total: %d", noArvore.freq);
 
     //free();
