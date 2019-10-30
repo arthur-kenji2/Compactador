@@ -32,21 +32,15 @@ void criarFila( struct priorityQueue *f, int c )
 
 void inserir( struct priorityQueue *f, HuffNode v)
 {
-
-    for(int i = 0; i<f.qtd;i++)
-    {
-        if(v.freq < f.)
-    }
-
 	if(f->ultimo == f->capacidade-1)
 		f->ultimo = -1;
 
 	f->ultimo++;
 	f->noLetra[f->ultimo] = v;
-	f->qtd++;
+	f->qtd = f->qtd + 1;
 }
 
-void inserirNo( struct priorityQueue *f, int i, HuffNode no)
+void inserirNo( struct priorityQueue *f,  HuffNode no)
 {
     if(estaVazia(&f))
     {
@@ -55,8 +49,15 @@ void inserirNo( struct priorityQueue *f, int i, HuffNode no)
         f->noLetra[f->ultimo] = no;
     }
 
-    for(int j = f->qtd; j > i; i++)
-        f->noLetra[j+1] = f->noLetra[j];
+    int i;
+    for(int j = 0; j < f->qtd; j++)
+        if(f->noLetra[j].freq < f->noLetra[i+1].freq)
+            i = j;
+
+    for(int j = f->ultimo + 1; j >= i; j--)
+    {
+        f->noLetra[j] = f->noLetra[j - 1];
+    }
 
     f->ultimo++;
     f->noLetra[i] = no;
@@ -208,6 +209,10 @@ int main()
     for(int i = 0; i < qtd; i++)
         inserir(&fila, noLetra[i]);
 
+    printf("\nTeste\n");
+    for(int i = 0; i < getQtd(&fila); i++)
+        printf("%c - %d\n", getNoLetra(&fila, i).letra, getNoLetra(&fila, i).freq);
+
     for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
 
@@ -220,9 +225,9 @@ int main()
         noArvore.esq = &no1;
         noArvore.dir = &no2;
 
-        inserir(&fila, noArvore);
-
+        inserirNo(&fila, noArvore);
     }
+
     printf("\nfrequencia total: %d", noArvore.freq);
 
     //free();
