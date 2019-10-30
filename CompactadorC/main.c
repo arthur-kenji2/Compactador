@@ -51,16 +51,23 @@ void inserirNo( struct priorityQueue *f,  HuffNode no)
 
     int i;
     for(int j = 0; j < f->qtd; j++)
-        if(f->noLetra[j].freq < f->noLetra[i+1].freq)
-            i = j;
+        if(no.freq < f->noLetra[j].freq)
+        {
+           i = j;
+           break;
+        }
 
-    for(int j = f->ultimo + 1; j >= i; j--)
-    {
+
+    for(int j = f->ultimo + 1; j > i; j--)
         f->noLetra[j] = f->noLetra[j - 1];
-    }
 
+    f->noLetra[++i] = NULL;
+
+    printf("%d\n", no.freq);
+
+    f->primeiro = f->primeiro + 2;
     f->ultimo++;
-    f->noLetra[i] = no;
+    f->noLetra[++i] = no;
 }
 
 HuffNode remover( struct priorityQueue *f ) {
@@ -201,6 +208,7 @@ int main()
 
     HuffNode noArvore;
     noArvore.freq = 0;
+    noArvore.letra = NULL;
 
     struct priorityQueue fila;
 
@@ -211,11 +219,10 @@ int main()
 
     printf("\nTeste\n");
     for(int i = 0; i < getQtd(&fila); i++)
-        printf("%c - %d\n", getNoLetra(&fila, i).letra, getNoLetra(&fila, i).freq);
+        printf("%c - %d\n", getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
 
     for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
-
         HuffNode no1 = remover(&fila);
         HuffNode no2 = remover(&fila);
 
