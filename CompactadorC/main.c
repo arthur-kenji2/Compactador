@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <stdbool.h>
+
+typedef unsigned char byte;
 
 typedef struct
 {
@@ -17,6 +20,43 @@ typedef struct priorityQueue
     int qtd;
     HuffNode *noLetra;
 };
+
+bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
+{
+    // Se o nó for folha e o seu valor for o buscado, colocar o caractere terminal no buffer e encerrar
+    if (!(n->esq || n->dir) && n->letra[0] == c)
+    {
+        buffer[tamanho] = '\0';
+        return true;
+    }
+    else
+    {
+        bool encontrado = false;
+
+        // Se existir um nó à esquerda
+        if (n->esq)
+        {
+            // Adicione '0' no bucket do buffer correspondente ao 'tamanho' nodeAtual
+            buffer[tamanho] = '0';
+
+            // fazer recursão no nó esquerdo
+            encontrado = pegaCodigo(n->esq, c, buffer, tamanho + 1);
+        }
+
+        if (!encontrado && n->dir)
+        {
+            buffer[tamanho] = '1';
+            encontrado = pegaCodigo(n->dir, c, buffer, tamanho + 1);
+        }
+        if (!encontrado)
+        {
+            buffer[tamanho] = '\0';
+        }
+
+        return encontrado;
+    }
+}
+
 
 
 void criarFila( struct priorityQueue *f, int c )
@@ -53,7 +93,6 @@ void insertionSort(struct priorityQueue *f)
         }
     }
 }
-
 
 void inserir( struct priorityQueue *f, HuffNode v)
 {
@@ -236,7 +275,7 @@ int main()
     HuffNode no1;
     HuffNode no2;
 
-    HuffNode noFinal;
+    HuffNode raiz;
 
     for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
@@ -259,10 +298,45 @@ int main()
 
         insertionSort(&fila);
 
-        noFinal = noArvore;
+        raiz = noArvore;
     }
 
+    FILE *saida = fopen("", "wb");
+    (!saida) ? erroArquivo() : NULL == NULL ;
 
+    byte b;
+
+    while (fread(&b, 1, 1, file) >= 1)
+    {
+        // Cria um buffer vazio
+        char buffer[1024] = {0};
+
+        // Busca o código começando no nó 'raiz', utilizando o byte salvo em 'c', preenchendo 'buffer', desde o bucket deste último
+        pegaCodigo(raiz, b, buffer, 0);
+
+        // Laço que percorre o buffer
+        for (char *i = buffer; *i; i++)
+        {
+            // Se o caractere na posição nodeAtual for '1'
+            if (*i == '1')
+            {
+                // 2 elevado ao resto da divisão de 'tamanho' por 8
+                // que é o mesmo que jogar um '1' na posição denotada por 'tamanho % 8'
+                // aux = aux + pow(2, tamanho % 8);
+                aux = aux | (1 << (tamanho % 8));
+            }
+
+            tamanho++;
+
+            // Escreve byte no arquivo
+            if (tamanho % 8 == 0)
+            {
+                fwrite(&aux, 1, 1, saida);
+                // Zera a variável auxiliar
+                aux = 0;
+            }
+        }
+    }
 
     return 0;
 }
