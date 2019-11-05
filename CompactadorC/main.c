@@ -21,7 +21,6 @@ typedef struct priorityQueue
 
 void criarFila( struct priorityQueue *f, int c )
 {
-
 	f->capacidade = c;
 	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
 	f->primeiro = 0;
@@ -30,20 +29,28 @@ void criarFila( struct priorityQueue *f, int c )
 
 }
 
-void insertionSort(struct priorityQueue *f, int n)
+void insertionSort(struct priorityQueue *f)
 {
-    int i, key, j;
-    for (i = 1; i < n; i++)
-    {
-        key = f->noLetra[i].freq;
-        j = i - 1;
+    int i, j, aux;
+    char c, b;
 
-        while (j >= 0 && f->noLetra[j].freq > key)
+    for(i = f->primeiro + 1; i <= f->ultimo; i++)
+    {
+        j = i;
+
+        while((j != 0) && (f->noLetra[j - 1].freq > f->noLetra[j].freq))
         {
-            f->noLetra[j + 1].freq = f->noLetra[j].freq;
-            j = j - 1;
+            aux = f->noLetra[j].freq;
+            c   = f->noLetra[j].letra[0];
+            b   = f->noLetra[j].letra[1];
+            f->noLetra[j].freq  = f->noLetra[j - 1].freq;
+            f->noLetra[j].letra[0] = f->noLetra[j - 1].letra[0];
+            f->noLetra[j].letra[1] = f->noLetra[j - 1].letra[1];
+            f->noLetra[j - 1].freq  = aux;
+            f->noLetra[j - 1].letra[0] = c;
+            f->noLetra[j - 1].letra[1] = b;
+            j--;
         }
-        f->noLetra[j + 1].freq = key;
     }
 }
 
@@ -55,7 +62,7 @@ void inserir( struct priorityQueue *f, HuffNode v)
 
 	f->ultimo++;
 	f->noLetra[f->ultimo] = v;
-	f->qtd = f->qtd + 1;
+	f->qtd++;
 }
 
 void inserirNo(struct priorityQueue *f,  HuffNode no)
@@ -104,11 +111,11 @@ HuffNode remover2( struct priorityQueue *f )
 
 HuffNode remover (struct priorityQueue *f)
 {
-    HuffNode temp;
-    temp = f->noLetra[f->primeiro];
-    f->noLetra[f->primeiro] = f->noLetra[f->primeiro++];
+    HuffNode ret;
+    ret = f->noLetra[f->primeiro];
+    f->primeiro++;
     f->qtd--;
-    return temp;
+    return ret;
 }
 
 int getQtd( struct priorityQueue *f){
@@ -215,31 +222,6 @@ int main()
                 noLetra[j].letra[0] = c;
                 noLetra[j].letra[1] = h;
             }
-
-     int freqTotal = 0;
-    printf("\nOrdenado:\n");
-        for(int i = 0; i < qtd; i++)
-        {
-
-            if(noLetra[i].letra[1] == 'p' || noLetra[i].letra[1] == 't')
-            {
-                printf("%c%c - ", noLetra[i].letra[0], noLetra[i].letra[1]);
-                printf("%d\n", noLetra[i].freq);
-                freqTotal += noLetra[i].freq;
-            }
-            else
-            {
-                printf("%c - ", noLetra[i].letra[0]);
-                printf("%d\n", noLetra[i].freq);
-                freqTotal += noLetra[i].freq;
-            }
-        }
-
-        printf("\nfrequencia total:%d", freqTotal);
-
-    HuffNode noArvore;
-    noArvore.freq = 0;
-
     struct priorityQueue fila;
 
     criarFila(&fila, 256);
@@ -249,13 +231,18 @@ int main()
 
     printf("\nTeste\n");
     for(int i = 0; i < getQtd(&fila); i++)
-        printf("%c - %d\n", getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
+        printf("%d - %c - %d\n", i, getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
 
     HuffNode no1;
     HuffNode no2;
 
+    HuffNode noFinal;
+
     for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
+        HuffNode noArvore;
+        noArvore.freq = 0;
+
         no1 = remover(&fila);
         no2 = remover(&fila);
 
@@ -268,23 +255,14 @@ int main()
         noArvore.esq = &no1;
         noArvore.dir = &no2;
 
-
         inserir(&fila, noArvore);
-        printf("\nteste2\n");
-        for(int i = 0; i < getQtd(&fila); i++)
-        printf("%c - %d\n", getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
 
-        insertionSort(&fila, getQtd(&fila));
+        insertionSort(&fila);
 
-
-        for(int i = 0; i < getQtd(&fila); i++)
-        printf("%c - %d\n", getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
-
+        noFinal = noArvore;
     }
 
-    printf("\nfrequencia total: %d", noArvore.freq);
 
-    //free();
 
     return 0;
 }
