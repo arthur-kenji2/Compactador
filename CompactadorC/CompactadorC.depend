@@ -3,10 +3,11 @@
 	<stdio.h>
 	<stdlib.h>
 
-1572878725 source:c:\users\u18176\projeto\compactador\compactadorc\main.c
+1573049094 source:c:\users\u18176\projeto\compactador\compactadorc\main.c
 	<stdio.h>
 	<stdlib.h>
 	<locale.h>
+	<stdbool.h>
 
 1572956877 source:c:\users\u18187\documents\github\compactador\compactadorc\main.c
 	<stdio.h>

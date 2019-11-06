@@ -69,6 +69,13 @@ void criarFila( struct priorityQueue *f, int c )
 
 }
 
+void erroArquivo()
+{
+    printf("Arquivo não encontrado\n");
+    exit(0);
+
+}
+
 void insertionSort(struct priorityQueue *f)
 {
     int i, j, aux;
@@ -301,18 +308,20 @@ int main()
         raiz = noArvore;
     }
 
-    FILE *saida = fopen("", "wb");
+    FILE *saida = fopen("saida.txt", "wb");
     (!saida) ? erroArquivo() : NULL == NULL ;
 
     byte b;
+    unsigned tamanho = 0;
+    byte aux = 0;
+
 
     while (fread(&b, 1, 1, file) >= 1)
     {
-        // Cria um buffer vazio
         char buffer[1024] = {0};
 
         // Busca o código começando no nó 'raiz', utilizando o byte salvo em 'c', preenchendo 'buffer', desde o bucket deste último
-        pegaCodigo(raiz, b, buffer, 0);
+        pegaCodigo(&raiz, b, buffer, 0);
 
         // Laço que percorre o buffer
         for (char *i = buffer; *i; i++)
