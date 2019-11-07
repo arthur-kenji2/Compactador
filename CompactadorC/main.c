@@ -19,11 +19,10 @@ typedef struct priorityQueue
     int ultimo;
     int qtd;
     HuffNode *noLetra;
-};
+}priorityQueue;
 
 bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
 {
-    // Se o nó for folha e o seu valor for o buscado, colocar o caractere terminal no buffer e encerrar
     if (!(n->esq || n->dir) && n->letra[0] == c)
     {
         buffer[tamanho] = '\0';
@@ -33,13 +32,10 @@ bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
     {
         bool encontrado = false;
 
-        // Se existir um nó à esquerda
         if (n->esq)
         {
-            // Adicione '0' no bucket do buffer correspondente ao 'tamanho' nodeAtual
             buffer[tamanho] = '0';
 
-            // fazer recursão no nó esquerdo
             encontrado = pegaCodigo(n->esq, c, buffer, tamanho + 1);
         }
 
@@ -74,6 +70,19 @@ void erroArquivo()
     printf("Arquivo não encontrado\n");
     exit(0);
 
+}
+
+void printarArvore(HuffNode *n, int tamanho)
+{
+    if(!n){}
+    else{
+        tamanho++;
+        printarArvore(&n->esq, tamanho);
+        printarArvore(&n->dir, tamanho);
+
+        printf("%d - %c", tamanho, n->letra);
+        tamanho--;
+    }
 }
 
 void insertionSort(struct priorityQueue *f)
@@ -111,50 +120,6 @@ void inserir( struct priorityQueue *f, HuffNode v)
 	f->qtd++;
 }
 
-void inserirNo(struct priorityQueue *f,  HuffNode no)
-{
-
-    /*
-    if(f->qtd == 0)
-    {
-        f->qtd++;
-        f->ultimo++;
-        f->noLetra[f->ultimo] = no;
-    }
-
-    int i = 0;
-    for(int j = 0; j < f->qtd; j++)
-        if(no.freq < f->noLetra[j].freq)
-        {
-           i = j;
-           break;
-        }
-
-
-    for(int j = f->ultimo + 1; j >= i; j--)
-        f->noLetra[j] = f->noLetra[j - 1];
-
-
-
-    f->primeiro = f->primeiro + 2;
-    f->ultimo++;
-    f->noLetra[i] = no;
-    printf("%d \n", f->noLetra[--i].freq);
-    */
-}
-
-HuffNode remover2( struct priorityQueue *f )
-{
-
-	HuffNode temp = f->noLetra[f->primeiro++];
-	if(f->primeiro == f->capacidade)
-		f->primeiro = 0;
-
-	f->qtd--;
-	return temp;
-
-}
-
 HuffNode remover (struct priorityQueue *f)
 {
     HuffNode ret;
@@ -163,6 +128,27 @@ HuffNode remover (struct priorityQueue *f)
     f->qtd--;
     return ret;
 }
+
+HuffNode popMinLista (struct priorityQueue *f){
+    // Ponteiro auxilar que aponta para o primeiro nó da lista
+    HuffNode aux = f->noLetra[f->primeiro];
+
+    // Ponteiro auxiliar que aponta para a árvore contida em aux (árvore do primeiro nó da lista)
+    HuffNode aux2 = aux;
+
+    // Aponta o 'head' da lista para o segundo elemento dela
+    f->noLetra[f->primeiro] = aux->;
+
+    // Libera o ponteiro aux
+    free(aux);
+    aux = NULL;
+
+    // Decrementa a quantidade de elementos
+    f->qtd--;
+
+    return aux2;
+}
+
 
 int getQtd( struct priorityQueue *f){
     return f->qtd;
@@ -183,8 +169,6 @@ HuffNode getNoLetra (struct priorityQueue *f, int i)
     return f->noLetra[i];
 }
 
-
-
 int estaVazia( struct priorityQueue *f )
 {
 
@@ -197,7 +181,18 @@ int estaCheia( struct priorityQueue *f ) {
 	return (f->qtd == f->capacidade);
 }
 
+void FreeHuffmanTree(HuffNode *n)
+{
+    if (!n)
+        return;
+    else
+    {
+        free(n);
 
+        FreeHuffmanTree(&n->esq);
+        FreeHuffmanTree(&n->dir);
+    }
+}
 
 int main()
 {
@@ -251,7 +246,7 @@ int main()
                 }
 
             }
-        fclose(file);
+        rewind(file);
     }
 
     for (int i = 0; i < qtd; ++i)
@@ -268,6 +263,7 @@ int main()
                 noLetra[j].letra[0] = c;
                 noLetra[j].letra[1] = h;
             }
+
     struct priorityQueue fila;
 
     criarFila(&fila, 256);
@@ -275,11 +271,7 @@ int main()
     for(int i = 0; i < qtd; i++)
         inserir(&fila, noLetra[i]);
 
-    printf("\nTeste\n");
-    for(int i = 0; i < getQtd(&fila); i++)
-        printf("%d - %c - %d\n", i, getNoLetra(&fila, i).letra[0], getNoLetra(&fila, i).freq);
-
-    HuffNode no1;
+    /**HuffNode no1;
     HuffNode no2;
 
     HuffNode raiz;
@@ -308,6 +300,24 @@ int main()
         raiz = noArvore;
     }
 
+    int tam = 0;
+    printarArvore(&raiz, tam);*/
+
+    while (l.elementos > 1)
+    {
+        HuffNode *nodeEsquerdo = popMinLista(&l);
+        HuffNode *nodeDireito = popMinLista(&l);
+
+        soma.letra= '#';
+        soma.freq = nodeEsquerdo->freq + nodeDireito->freq;
+        soma.esq = nodeEsquerdo;
+        soma.dir = nodeDireito;
+
+        inserir(&fila, soma);
+        insertionSort(&fila);
+    }
+
+
     FILE *saida = fopen("saida.txt", "wb");
     (!saida) ? erroArquivo() : NULL == NULL ;
 
@@ -315,37 +325,49 @@ int main()
     unsigned tamanho = 0;
     byte aux = 0;
 
-
     while (fread(&b, 1, 1, file) >= 1)
     {
         char buffer[1024] = {0};
 
-        // Busca o código começando no nó 'raiz', utilizando o byte salvo em 'c', preenchendo 'buffer', desde o bucket deste último
-        pegaCodigo(&raiz, b, buffer, 0);
+        pegaCodigo(&raiz, &b, &buffer, 0);
 
-        // Laço que percorre o buffer
         for (char *i = buffer; *i; i++)
         {
-            // Se o caractere na posição nodeAtual for '1'
             if (*i == '1')
             {
-                // 2 elevado ao resto da divisão de 'tamanho' por 8
-                // que é o mesmo que jogar um '1' na posição denotada por 'tamanho % 8'
-                // aux = aux + pow(2, tamanho % 8);
                 aux = aux | (1 << (tamanho % 8));
             }
 
             tamanho++;
+            printf("\naux = %c", aux);
 
-            // Escreve byte no arquivo
-            if (tamanho % 8 == 0)
+             if (tamanho % 8 == 0)
             {
                 fwrite(&aux, 1, 1, saida);
-                // Zera a variável auxiliar
                 aux = 0;
             }
         }
     }
+
+    fwrite(&aux, 1, 1, saida);
+
+    fseek(saida, 256 * sizeof(unsigned int), SEEK_SET);
+
+    fwrite(&tamanho, 1, sizeof(unsigned), saida);
+
+    fseek(file, 0L, SEEK_END);
+    double tamanhoEntrada = ftell(file);
+
+    fseek(saida, 0L, SEEK_END);
+    double tamanhoSaida = ftell(saida);
+
+    //FreeHuffmanTree(&raiz);
+
+    printf("Arquivo de entrada: (%g bytes)\nArquivo de saida: (%g bytes)\n", tamanhoEntrada / 1000, tamanhoSaida / 1000);
+    printf("Taxa de compressao: %d%%\n", (int)((100 * tamanhoSaida) / tamanhoEntrada));
+
+    fclose(file);
+    fclose(saida);
 
     return 0;
 }
