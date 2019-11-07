@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1514140574 source:c:\users\u18187\documents\github\compactador\compactadoremc\main.c
+	<stdio.h>
+	<stdlib.h>
+
+1573127585 source:c:\users\u18187\documents\github\compactador\compactadoremc\src\lista.c
+	"Lista.h"
+
+1573127984 c:\users\u18187\documents\github\compactador\compactadoremc\include\lista.h
+

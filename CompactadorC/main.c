@@ -3,6 +3,8 @@
 #include <locale.h>
 #include <stdbool.h>
 
+#include <Lista.h>
+
 typedef unsigned char byte;
 
 typedef struct
@@ -12,14 +14,12 @@ typedef struct
     struct HuffNode *esq, *dir;
 } HuffNode;
 
-typedef struct priorityQueue
+typedef struct noLista
 {
-    int capacidade;
-    int primeiro;
-    int ultimo;
-    int qtd;
-    HuffNode *noLetra;
-}priorityQueue;
+    HuffNode *dado;
+    HuffNode *prox;
+} noLista;
+
 
 bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
 {
@@ -53,9 +53,7 @@ bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
     }
 }
 
-
-
-void criarFila( struct priorityQueue *f, int c )
+void criarFila( struct Lista *f, int c )
 {
 	f->capacidade = c;
 	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
