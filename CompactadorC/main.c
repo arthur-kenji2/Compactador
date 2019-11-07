@@ -3,11 +3,9 @@
 #include <locale.h>
 #include <stdbool.h>
 
-#include <Lista.h>
-
 typedef unsigned char byte;
 
-typedef struct
+typedef struct HuffNode
 {
     char letra[2];
     int freq;
@@ -16,8 +14,11 @@ typedef struct
 
 typedef struct noLista
 {
-    HuffNode *dado;
-    HuffNode *prox;
+    int capacidade;
+    int primeiro;
+    int ultimo;
+    int qtd;
+    HuffNode *noLetra;
 } noLista;
 
 
@@ -60,7 +61,6 @@ void criarFila( struct Lista *f, int c )
 	f->primeiro = 0;
 	f->ultimo = -1;
 	f->qtd = 0;
-
 }
 
 void erroArquivo()
@@ -68,19 +68,6 @@ void erroArquivo()
     printf("Arquivo não encontrado\n");
     exit(0);
 
-}
-
-void printarArvore(HuffNode *n, int tamanho)
-{
-    if(!n){}
-    else{
-        tamanho++;
-        printarArvore(&n->esq, tamanho);
-        printarArvore(&n->dir, tamanho);
-
-        printf("%d - %c", tamanho, n->letra);
-        tamanho--;
-    }
 }
 
 void insertionSort(struct priorityQueue *f)
@@ -128,20 +115,15 @@ HuffNode remover (struct priorityQueue *f)
 }
 
 HuffNode popMinLista (struct priorityQueue *f){
-    // Ponteiro auxilar que aponta para o primeiro nó da lista
     HuffNode aux = f->noLetra[f->primeiro];
 
-    // Ponteiro auxiliar que aponta para a árvore contida em aux (árvore do primeiro nó da lista)
     HuffNode aux2 = aux;
 
-    // Aponta o 'head' da lista para o segundo elemento dela
     f->noLetra[f->primeiro] = aux->;
 
-    // Libera o ponteiro aux
     free(aux);
     aux = NULL;
 
-    // Decrementa a quantidade de elementos
     f->qtd--;
 
     return aux2;
@@ -167,18 +149,6 @@ HuffNode getNoLetra (struct priorityQueue *f, int i)
     return f->noLetra[i];
 }
 
-int estaVazia( struct priorityQueue *f )
-{
-
-	return (f->qtd==0);
-
-}
-
-int estaCheia( struct priorityQueue *f ) {
-
-	return (f->qtd == f->capacidade);
-}
-
 void FreeHuffmanTree(HuffNode *n)
 {
     if (!n)
@@ -195,7 +165,7 @@ void FreeHuffmanTree(HuffNode *n)
 int main()
 {
     char c;
-
+    unsigned listaBytes[256] = {0};
     HuffNode noLetra[255];
     int qtd = 0;
 
@@ -267,9 +237,13 @@ int main()
     criarFila(&fila, 256);
 
     for(int i = 0; i < qtd; i++)
+    {
         inserir(&fila, noLetra[i]);
+        listaBytes[i] = noLetra[i].freq;
+    }
 
-    /**HuffNode no1;
+
+    HuffNode no1;
     HuffNode no2;
 
     HuffNode raiz;
@@ -298,74 +272,10 @@ int main()
         raiz = noArvore;
     }
 
-    int tam = 0;
-    printarArvore(&raiz, tam);*/
-
-    while (l.elementos > 1)
-    {
-        HuffNode *nodeEsquerdo = popMinLista(&l);
-        HuffNode *nodeDireito = popMinLista(&l);
-
-        soma.letra= '#';
-        soma.freq = nodeEsquerdo->freq + nodeDireito->freq;
-        soma.esq = nodeEsquerdo;
-        soma.dir = nodeDireito;
-
-        inserir(&fila, soma);
-        insertionSort(&fila);
-    }
-
-
     FILE *saida = fopen("saida.txt", "wb");
     (!saida) ? erroArquivo() : NULL == NULL ;
 
-    byte b;
-    unsigned tamanho = 0;
-    byte aux = 0;
-
-    while (fread(&b, 1, 1, file) >= 1)
-    {
-        char buffer[1024] = {0};
-
-        pegaCodigo(&raiz, &b, &buffer, 0);
-
-        for (char *i = buffer; *i; i++)
-        {
-            if (*i == '1')
-            {
-                aux = aux | (1 << (tamanho % 8));
-            }
-
-            tamanho++;
-            printf("\naux = %c", aux);
-
-             if (tamanho % 8 == 0)
-            {
-                fwrite(&aux, 1, 1, saida);
-                aux = 0;
-            }
-        }
-    }
-
-    fwrite(&aux, 1, 1, saida);
-
-    fseek(saida, 256 * sizeof(unsigned int), SEEK_SET);
-
-    fwrite(&tamanho, 1, sizeof(unsigned), saida);
-
-    fseek(file, 0L, SEEK_END);
-    double tamanhoEntrada = ftell(file);
-
-    fseek(saida, 0L, SEEK_END);
-    double tamanhoSaida = ftell(saida);
-
-    //FreeHuffmanTree(&raiz);
-
-    printf("Arquivo de entrada: (%g bytes)\nArquivo de saida: (%g bytes)\n", tamanhoEntrada / 1000, tamanhoSaida / 1000);
-    printf("Taxa de compressao: %d%%\n", (int)((100 * tamanhoSaida) / tamanhoEntrada));
-
-    fclose(file);
-    fclose(saida);
+    fwrite(listaBytes, 256, sizeof(listaBytes[0]), saida);
 
     return 0;
 }

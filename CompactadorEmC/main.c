@@ -3,9 +3,60 @@
 #include <locale.h>
 #include <stdbool.h>
 
-#include <Lista.h>
-
 typedef unsigned char byte;
+
+typedef struct HuffNode
+{
+    char letra[2];
+    int freq;
+    struct HuffNode *esq, *dir;
+} HuffNode;
+
+typedef struct noLista
+{
+    HuffNode *dado;
+    struct noLista *prox;
+} noLista;
+
+typedef struct Lista
+{
+    noLista   *head;
+    int       elementos;
+}Lista;
+
+noLista getHead(Lista *l)
+{
+    return *l->head;
+}
+
+void insereLista(noLista *n, Lista *l)
+{
+    if (!l->head)
+    {
+       l->head = &n;
+   }
+    else
+        if (n->dado->freq < l->head->dado->freq)
+    {
+        n->prox = l->head;
+        l->head = &n;
+    }
+    else
+    {
+        noLista *aux = l->head->prox;
+        noLista *aux2 = l->head;
+
+        while (aux && aux->dado->freq <= n->dado->freq)
+        {
+            aux2 = aux;
+            aux = aux2->prox;
+        }
+
+        aux2->prox = &n;
+        n->prox = &aux;
+    }
+    l->elementos++;
+}
 
 bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
 {
@@ -46,100 +97,7 @@ void erroArquivo()
 
 }
 
-void insertionSort(struct noLista *f)
-{
-    int i, j, aux;
-    char c, b;
 
-    for(i = f->primeiro + 1; i <= f->ultimo; i++)
-    {
-        j = i;
-
-        while((j != 0) && (f->noLetra[j - 1].freq > f->noLetra[j].freq))
-        {
-            aux = f->noLetra[j].freq;
-            c   = f->noLetra[j].letra[0];
-            b   = f->noLetra[j].letra[1];
-            f->noLetra[j].freq  = f->noLetra[j - 1].freq;
-            f->noLetra[j].letra[0] = f->noLetra[j - 1].letra[0];
-            f->noLetra[j].letra[1] = f->noLetra[j - 1].letra[1];
-            f->noLetra[j - 1].freq  = aux;
-            f->noLetra[j - 1].letra[0] = c;
-            f->noLetra[j - 1].letra[1] = b;
-            j--;
-        }
-    }
-}
-
-HuffNode remover (struct priorityQueue *f)
-{
-    HuffNode ret;
-    ret = f->noLetra[f->primeiro];
-    f->primeiro++;
-    f->qtd--;
-    return ret;
-}
-
-void insereLista(noLista *n, lista *l)
-{
-    if (!l->head)
-    {
-        l->head = n;
-    }
-    else
-        if (n->n->frequencia < l->head->n->frequencia)
-    {
-        n->proximo = l->head;
-        l->head = n;
-    }
-    else
-    {
-        noLista *aux = l->head->proximo;
-        noLista *aux2 = l->head;
-
-        while (aux && aux->n->frequencia <= n->n->frequencia)
-        {
-            aux2 = aux;
-            aux = aux2->proximo;
-        }
-
-        aux2->proximo = n;
-        n->proximo = aux;
-    }
-
-    l->elementos++;
-}
-
-int getQtd( struct priorityQueue *f){
-    return f->qtd;
-}
-
-int getPrimeiro (struct priorityQueue *f)
-{
-    return f->primeiro;
-}
-
-int getUltimo (struct priorityQueue *f)
-{
-    return f->ultimo;
-}
-
-HuffNode getNoLetra (struct priorityQueue *f, int i)
-{
-    return f->noLetra[i];
-}
-
-int estaVazia( struct priorityQueue *f )
-{
-
-	return (f->qtd==0);
-
-}
-
-int estaCheia( struct priorityQueue *f ) {
-
-	return (f->qtd == f->capacidade);
-}
 
 void FreeHuffmanTree(HuffNode *n)
 {
@@ -152,6 +110,21 @@ void FreeHuffmanTree(HuffNode *n)
         FreeHuffmanTree(&n->esq);
         FreeHuffmanTree(&n->dir);
     }
+}
+
+HuffNode *popMinLista(Lista *l)
+{
+    noLista *aux = l->head;
+    HuffNode *aux2 = aux->dado;
+
+    l->head = aux->prox;
+
+    free(aux);
+    aux = NULL;
+
+    l->elementos--;
+
+    return aux2;
 }
 
 int main()
@@ -172,6 +145,7 @@ int main()
 
     FILE *file;
     file = fopen("texto.txt", "r");
+
     if (file)
     {
         while ((c = getc(file)) != EOF)
@@ -224,110 +198,74 @@ int main()
                 noLetra[j].letra[1] = h;
             }
 
-    struct priorityQueue fila;
-
-    criarFila(&fila, 256);
+    Lista lista = {NULL, 0};
 
     for(int i = 0; i < qtd; i++)
-        inserir(&fila, noLetra[i]);
-
-    /**HuffNode no1;
-    HuffNode no2;
-
-    HuffNode raiz;
-
-    for(int i = 0; getQtd(&fila) != 1; i += 2)
     {
-        HuffNode noArvore;
-        noArvore.freq = 0;
+        noLista no;
+        no.dado = &noLetra[i];
+        no.prox = NULL;
 
-        no1 = remover(&fila);
-        no2 = remover(&fila);
+        if (!lista.head)
+            lista.head = &no;
 
-        noArvore.letra[0] = '0';
-        noArvore.letra[1] = '0';
+        noLista *aux = lista.head->prox;
+        noLista *aux2 = lista.head;
 
-        noArvore.freq += no1.freq;
-        noArvore.freq += no2.freq;
+        while (aux && aux->dado->freq <= no.dado->freq)
+        {
+            aux2 = aux;
+            aux = aux2->prox;
+        }
 
-        noArvore.esq = &no1;
-        noArvore.dir = &no2;
+        aux2->prox = &no;
+        no.prox = aux;
 
-        inserir(&fila, noArvore);
-
-        insertionSort(&fila);
-
-        raiz = noArvore;
+        lista.elementos++;
     }
 
-    int tam = 0;
-    printarArvore(&raiz, tam);*/
-
-    while (l.elementos > 1)
+    while (lista.elementos > 1)
     {
-        HuffNode *nodeEsquerdo = popMinLista(&l);
-        HuffNode *nodeDireito = popMinLista(&l);
+        HuffNode *nodeEsquerdo = popMinLista(&lista);
+        HuffNode *nodeDireito = popMinLista(&lista);
 
-        soma.letra= '#';
+        HuffNode soma;
+        soma.letra[0]= '#';
+        soma.letra[1]= '#';
         soma.freq = nodeEsquerdo->freq + nodeDireito->freq;
         soma.esq = nodeEsquerdo;
         soma.dir = nodeDireito;
 
-        inserir(&fila, soma);
-        insertionSort(&fila);
-    }
+        noLista no;
+        no.dado = &soma;
+        no.prox = NULL;
 
-
-    FILE *saida = fopen("saida.txt", "wb");
-    (!saida) ? erroArquivo() : NULL == NULL ;
-
-    byte b;
-    unsigned tamanho = 0;
-    byte aux = 0;
-
-    while (fread(&b, 1, 1, file) >= 1)
-    {
-        char buffer[1024] = {0};
-
-        pegaCodigo(&raiz, &b, &buffer, 0);
-
-        for (char *i = buffer; *i; i++)
+        if (!lista.head)
         {
-            if (*i == '1')
-            {
-                aux = aux | (1 << (tamanho % 8));
-            }
-
-            tamanho++;
-            printf("\naux = %c", aux);
-
-             if (tamanho % 8 == 0)
-            {
-                fwrite(&aux, 1, 1, saida);
-                aux = 0;
-            }
+            lista.head = &no;
         }
+        else if (no.dado->freq < lista.head->dado->freq)
+        {
+            no.prox = lista.head;
+            lista.head = &no;
+        }
+        else
+        {
+            noLista *aux = lista.head->prox;
+            noLista *aux2 = lista.head;
+
+            while (aux && aux->dado->freq <= no.dado->freq)
+            {
+                aux2 = aux;
+                aux = aux2->prox;
+            }
+
+            aux2->prox = &no;
+            no.prox = &aux;
+        }
+
+        lista.elementos++;
     }
-
-    fwrite(&aux, 1, 1, saida);
-
-    fseek(saida, 256 * sizeof(unsigned int), SEEK_SET);
-
-    fwrite(&tamanho, 1, sizeof(unsigned), saida);
-
-    fseek(file, 0L, SEEK_END);
-    double tamanhoEntrada = ftell(file);
-
-    fseek(saida, 0L, SEEK_END);
-    double tamanhoSaida = ftell(saida);
-
-    //FreeHuffmanTree(&raiz);
-
-    printf("Arquivo de entrada: (%g bytes)\nArquivo de saida: (%g bytes)\n", tamanhoEntrada / 1000, tamanhoSaida / 1000);
-    printf("Taxa de compressao: %d%%\n", (int)((100 * tamanhoSaida) / tamanhoEntrada));
-
-    fclose(file);
-    fclose(saida);
 
     return 0;
 }
