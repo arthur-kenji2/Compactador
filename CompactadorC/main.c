@@ -54,7 +54,7 @@ bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
     }
 }
 
-void criarFila( struct Lista *f, int c )
+void criarFila( struct noLista *f, int c )
 {
 	f->capacidade = c;
 	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
@@ -70,7 +70,7 @@ void erroArquivo()
 
 }
 
-void insertionSort(struct priorityQueue *f)
+void insertionSort(struct noLista *f)
 {
     int i, j, aux;
     char c, b;
@@ -95,7 +95,7 @@ void insertionSort(struct priorityQueue *f)
     }
 }
 
-void inserir( struct priorityQueue *f, HuffNode v)
+void inserir( struct noLista *f, HuffNode v)
 {
 	if(f->ultimo == f->capacidade-1)
 		f->ultimo = -1;
@@ -105,7 +105,7 @@ void inserir( struct priorityQueue *f, HuffNode v)
 	f->qtd++;
 }
 
-HuffNode remover (struct priorityQueue *f)
+HuffNode remover (struct noLista *f)
 {
     HuffNode ret;
     ret = f->noLetra[f->primeiro];
@@ -114,37 +114,21 @@ HuffNode remover (struct priorityQueue *f)
     return ret;
 }
 
-HuffNode popMinLista (struct priorityQueue *f){
-    HuffNode aux = f->noLetra[f->primeiro];
-
-    HuffNode aux2 = aux;
-
-    f->noLetra[f->primeiro] = aux->;
-
-    free(aux);
-    aux = NULL;
-
-    f->qtd--;
-
-    return aux2;
-}
-
-
-int getQtd( struct priorityQueue *f){
+int getQtd( struct noLista *f){
     return f->qtd;
 }
 
-int getPrimeiro (struct priorityQueue *f)
+int getPrimeiro (struct noLista *f)
 {
     return f->primeiro;
 }
 
-int getUltimo (struct priorityQueue *f)
+int getUltimo (struct noLista *f)
 {
     return f->ultimo;
 }
 
-HuffNode getNoLetra (struct priorityQueue *f, int i)
+HuffNode getNoLetra (struct noLista *f, int i)
 {
     return f->noLetra[i];
 }
@@ -232,7 +216,7 @@ int main()
                 noLetra[j].letra[1] = h;
             }
 
-    struct priorityQueue fila;
+    struct noLista fila;
 
     criarFila(&fila, 256);
 
@@ -271,6 +255,8 @@ int main()
 
         raiz = noArvore;
     }
+
+    printf("%d", raiz.freq);
 
     FILE *saida = fopen("saida.txt", "wb");
     (!saida) ? erroArquivo() : NULL == NULL ;
