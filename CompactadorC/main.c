@@ -262,6 +262,7 @@ int main()
     (!saida) ? erroArquivo() : NULL == NULL ;
 
     fwrite(listaBytes, 256, sizeof(listaBytes[0]), saida);
+    fseek(saida, sizeof(unsigned int), SEEK_CUR);
 
     return 0;
 }
