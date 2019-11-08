@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1573176529 source:c:\users\pichau\desktop\github\compactador\compactadoredescompactador\main.c
+	<stdio.h>
+	<stdlib.h>
+	<locale.h>
+	<stdbool.h>
+
