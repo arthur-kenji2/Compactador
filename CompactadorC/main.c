@@ -7,130 +7,28 @@ typedef unsigned char byte;
 
 typedef struct HuffNode
 {
-    char letra[2];
+    byte letra;
     int freq;
     struct HuffNode *esq, *dir;
 } HuffNode;
 
 typedef struct noLista
 {
-    int capacidade;
-    int primeiro;
-    int ultimo;
-    int qtd;
-    HuffNode *noLetra;
+    HuffNode *dado;
+    struct noLista *prox;
 } noLista;
 
-
-bool pegaCodigo(HuffNode *n, byte c, char *buffer, int tamanho)
+typedef struct Lista
 {
-    if (!(n->esq || n->dir) && n->letra[0] == c)
-    {
-        buffer[tamanho] = '\0';
-        return true;
-    }
-    else
-    {
-        bool encontrado = false;
-
-        if (n->esq)
-        {
-            buffer[tamanho] = '0';
-
-            encontrado = pegaCodigo(n->esq, c, buffer, tamanho + 1);
-        }
-
-        if (!encontrado && n->dir)
-        {
-            buffer[tamanho] = '1';
-            encontrado = pegaCodigo(n->dir, c, buffer, tamanho + 1);
-        }
-        if (!encontrado)
-        {
-            buffer[tamanho] = '\0';
-        }
-
-        return encontrado;
-    }
-}
-
-void criarFila( struct noLista *f, int c )
-{
-	f->capacidade = c;
-	f->noLetra = (HuffNode*) malloc (f->capacidade * sizeof(HuffNode));
-	f->primeiro = 0;
-	f->ultimo = -1;
-	f->qtd = 0;
-}
+    noLista *head;
+    int tamanho;
+} Lista;
 
 void erroArquivo()
 {
     printf("Arquivo não encontrado\n");
     exit(0);
 
-}
-
-void insertionSort(struct noLista *f)
-{
-    int i, j, aux;
-    char c, b;
-
-    for(i = f->primeiro + 1; i <= f->ultimo; i++)
-    {
-        j = i;
-
-        while((j != 0) && (f->noLetra[j - 1].freq > f->noLetra[j].freq))
-        {
-            aux = f->noLetra[j].freq;
-            c   = f->noLetra[j].letra[0];
-            b   = f->noLetra[j].letra[1];
-            f->noLetra[j].freq  = f->noLetra[j - 1].freq;
-            f->noLetra[j].letra[0] = f->noLetra[j - 1].letra[0];
-            f->noLetra[j].letra[1] = f->noLetra[j - 1].letra[1];
-            f->noLetra[j - 1].freq  = aux;
-            f->noLetra[j - 1].letra[0] = c;
-            f->noLetra[j - 1].letra[1] = b;
-            j--;
-        }
-    }
-}
-
-void inserir( struct noLista *f, HuffNode v)
-{
-	if(f->ultimo == f->capacidade-1)
-		f->ultimo = -1;
-
-	f->ultimo++;
-	f->noLetra[f->ultimo] = v;
-	f->qtd++;
-}
-
-HuffNode remover (struct noLista *f)
-{
-    HuffNode ret;
-    ret = f->noLetra[f->primeiro];
-    f->primeiro++;
-    f->qtd--;
-    return ret;
-}
-
-int getQtd( struct noLista *f){
-    return f->qtd;
-}
-
-int getPrimeiro (struct noLista *f)
-{
-    return f->primeiro;
-}
-
-int getUltimo (struct noLista *f)
-{
-    return f->ultimo;
-}
-
-HuffNode getNoLetra (struct noLista *f, int i)
-{
-    return f->noLetra[i];
 }
 
 void FreeHuffmanTree(HuffNode *n)
@@ -146,123 +44,311 @@ void FreeHuffmanTree(HuffNode *n)
     }
 }
 
-int main()
+HuffNode *remover(Lista *l)
 {
-    char c;
-    unsigned listaBytes[256] = {0};
-    HuffNode noLetra[255];
-    int qtd = 0;
+    noLista *no = l->head;
+    HuffNode *noArv = no->dado;
 
-    setlocale(LC_ALL, "Portuguese");
+    l->head = no->prox;
 
-    for(int i=0; i<255; i++)
+    free(no);
+    no = NULL;
+
+    l->tamanho--;
+
+    return noArv;
+}
+
+void insereLista(noLista *n, Lista *l)
+{
+    if (!l->head)
+        l->head = n;
+
+    else if (n->dado->freq < l->head->dado->freq)
     {
-        noLetra[i].freq = 0;
-        noLetra[i].letra[0] = '0';
-        noLetra[i].letra[1] = '0';
+        n->prox = l->head;
+        l->head = n;
+    }
+    else
+    {
+        noLista *aux = l->head->prox;
+        noLista *aux2 = l->head;
+
+        while (aux && aux->dado->freq <= n->dado->freq)
+        {
+            aux2 = aux;
+            aux = aux2->prox;
+        }
+
+        aux2->prox = n;
+        n->prox = aux;
     }
 
-    FILE *file;
-    file = fopen("texto.txt", "r");
-    if (file)
+    l->tamanho++;
+}
+
+noLista *novoNoLista(HuffNode *noArv)
+{
+    noLista *novo;
+    if ((novo = malloc(sizeof(*novo))) == NULL) return NULL;
+
+    novo->dado = noArv;
+
+    novo->prox = NULL;
+
+    return novo;
+}
+
+HuffNode *novoNo(unsigned char c, int freq, HuffNode *esq, HuffNode *dir)
+{
+    HuffNode *novo;
+    if ((novo = malloc(sizeof(*novo))) == NULL)return NULL;
+
+    novo->letra = c;
+    novo->freq = freq;
+    novo->esq = esq;
+    novo->dir = dir;
+
+    return novo;
+}
+
+HuffNode *construirArvore(unsigned *l)
+{
+    Lista lista = {NULL, 0};
+
+    for (int i = 0; i < 256; i++)
+        if (l[i] == NULL)
+            insereLista(novoNoLista(novoNo(i, l[i], NULL, NULL)), &lista);
+
+    while (lista.tamanho > 1)
     {
-        while ((c = getc(file)) != EOF)
-            for(int i=0; i<255; i++)
-            {
-                if(noLetra[i].letra[0] == '0')
-                {
-                    if(c == ' ')
-                    {
-                        noLetra[i].letra[0] = 's';
-                        noLetra[i].letra[1] = 'p';
-                    }
-                    else
-                        if(c == '\n')
-                        {
-                            noLetra[i].letra[0] = 'e';
-                            noLetra[i].letra[1] = 't';
-                        }
-                        else
-                            noLetra[i].letra[0] = c;
-                    noLetra[i].freq  = 1;
-                    qtd++;
-                    break;
-                }
+        HuffNode *esq = remover(&lista);
+        HuffNode *dir = remover(&lista);
 
-                if(noLetra[i].letra[0] == c && noLetra[i].letra[1] == '0'
-                   || noLetra[i].letra[0] == 's' && noLetra[i].letra[1] == 'p' && c == ' '
-                   || noLetra[i].letra[0] == 'e' && noLetra[i].letra[1] == 't' && c == '\n')
-                {
-                    noLetra[i].freq += 1;
-                    break;
-                }
+        HuffNode *soma = novoNo('#', esq->freq + dir->freq, esq, dir);
 
-            }
-        rewind(file);
+        insereLista(novoNoLista(soma), &lista);
     }
 
-    for (int i = 0; i < qtd; ++i)
-        for (int j = i + 1; j < qtd; ++j)
-            if (noLetra[i].freq > noLetra[j].freq)
-            {
-                int a =  noLetra[i].freq;
-                char c = noLetra[i].letra[0];
-                char h = noLetra[i].letra[1];
-                noLetra[i].freq = noLetra[j].freq;
-                noLetra[i].letra[0] = noLetra[j].letra[0];
-                noLetra[i].letra[1] = noLetra[j].letra[1];
-                noLetra[j].freq = a;
-                noLetra[j].letra[0] = c;
-                noLetra[j].letra[1] = h;
-            }
+    return remover(&lista);
+}
 
-    struct noLista fila;
+int geraBit(FILE *arqEnt, int pos, unsigned char *aux )
+{
+    (pos % 8 == 0) ? fread(aux, 1, 1, arqEnt) : NULL == NULL ;
 
-    criarFila(&fila, 256);
+    return !!((*aux) & (1 << (pos % 8)));
+}
 
-    for(int i = 0; i < qtd; i++)
+bool codigoByte(HuffNode *no, unsigned char c, char *buffer, int tamanho)
+{
+    if (!(no->esq || no->dir) && no->letra == c)
     {
-        inserir(&fila, noLetra[i]);
-        listaBytes[i] = noLetra[i].freq;
+        buffer[tamanho] = '\0';
+        return true;
     }
-
-
-    HuffNode no1;
-    HuffNode no2;
-
-    HuffNode raiz;
-
-    for(int i = 0; getQtd(&fila) != 1; i += 2)
+    else
     {
-        HuffNode noArvore;
-        noArvore.freq = 0;
+        bool encontrado = false;
 
-        no1 = remover(&fila);
-        no2 = remover(&fila);
+        if (no->esq)
+        {
+            buffer[tamanho] = '0';
+            encontrado = codigoByte(no->esq, c, buffer, tamanho + 1);
+        }
 
-        noArvore.letra[0] = '0';
-        noArvore.letra[1] = '0';
+        if (!encontrado && no->dir)
+        {
+            buffer[tamanho] = '1';
+            encontrado = codigoByte(no->dir, c, buffer, tamanho + 1);
+        }
 
-        noArvore.freq += no1.freq;
-        noArvore.freq += no2.freq;
+        if (!encontrado)
+            buffer[tamanho] = '\0';
 
-        noArvore.esq = &no1;
-        noArvore.dir = &no2;
-
-        inserir(&fila, noArvore);
-
-        insertionSort(&fila);
-
-        raiz = noArvore;
+        return encontrado;
     }
+}
 
-    printf("%d", raiz.freq);
+void desalocarArvHuffman(HuffNode *no)
+{
+    if (!no)
+        return;
+    else
+    {
+        HuffNode *esq = no->esq;
+        HuffNode *dir= no->dir;
+        free(no);
 
-    FILE *saida = fopen("saida.txt", "wb");
-    (!saida) ? erroArquivo() : NULL == NULL ;
+        desalocarArvHuffman(esq);
+        desalocarArvHuffman(dir);
+    }
+}
 
-    fwrite(listaBytes, 256, sizeof(listaBytes[0]), saida);
+void compactar()
+{
+    char arqEntrada[40];
+    char arqSaida[40];
+
+    printf("\n\nDigite o nome do arquivo que será compactado: ");
+    scanf("%s", arqEntrada);
+
+    FILE *entrada = fopen(arqEntrada, "rb");
+    if(entrada == NULL)
+        erroArquivo();
+
+    printf("\n\nDigite o nome do arquivo em que o arquivo original sera compactado: ");
+    scanf("%s", arqSaida);
+
+    byte b;
+    unsigned listaFreqBytes[256] = {0};
+
+    while(fread(&b, 1, 1, entrada))
+        listaFreqBytes[(byte)b]++;
+
+    rewind(entrada);
+
+    HuffNode *raiz = construirArvore(listaFreqBytes);
+
+    FILE *saida = fopen(arqSaida, "wb");
+    if(saida == NULL)
+        erroArquivo();
+
+    fwrite(listaFreqBytes, 256, sizeof(listaFreqBytes[0]), saida);
     fseek(saida, sizeof(unsigned int), SEEK_CUR);
 
-    return 0;
+    unsigned char c;
+    unsigned tamanho = 0;
+    unsigned char aux = 0;
+
+    while (fread(&c, 1, 1, entrada) >= 1)
+    {
+        char buffer[1024] = {0};
+        codigoByte(raiz, c, buffer, 0);
+
+        for (char *i = buffer; *i; i++)
+        {
+            if (*i == '1')
+                aux = aux | (1 << (tamanho % 8));
+
+            tamanho++;
+
+            if (tamanho % 8 == 0)
+            {
+                fwrite(&aux, 1, 1, saida);
+                aux = 0;
+            }
+        }
+    }
+
+    fwrite(&aux, 1, 1, saida);
+    fseek(saida, 256 * sizeof(unsigned int), SEEK_SET);
+    fwrite(&tamanho, 1, sizeof(unsigned), saida);
+
+    fseek(entrada, 0L, SEEK_END);
+    double tamanhoEntrada = ftell(entrada);
+
+    fseek(saida, 0L, SEEK_END);
+    double tamanhoSaida = ftell(saida);
+
+    printf("\n\nArquivo de entrada: %s (%g bytes)\nArquivo de saida: %s (%g bytes)\n\n", arqEntrada, tamanhoEntrada / 1000, arqSaida, tamanhoSaida / 1000);
+
+    desalocarArvHuffman(raiz);
+
+    fclose(saida);
+    fclose(entrada);
+
+}
+
+int descompactar()
+{
+    FILE *entrada;
+    char arqEntrada[40];
+    char arqSaida[40];
+    unsigned listaFreqBytes[256] = {0};
+
+    printf("\nDigite o nome do arquivo que esta compactado: ");
+    scanf("%s", arqEntrada);
+
+    entrada = fopen(arqEntrada, "rb");
+    if (entrada == NULL)
+        erroArquivo();
+
+    printf("\nDigite o nome do arquivo em que o arquivo original sera descompactado: ");
+    scanf("%s", arqSaida);
+
+    fread(listaFreqBytes, 256, sizeof(listaFreqBytes[0]), entrada);
+
+    HuffNode *raiz = construirArvore(listaFreqBytes);
+
+    unsigned tamanho;
+    fread(&tamanho, 1, sizeof(tamanho), entrada);
+
+    unsigned posicao = 0;
+    unsigned char aux = 0;
+
+    FILE *saida = fopen(arqSaida, "wb");
+    if(saida == NULL)
+        erroArquivo();
+
+    while (posicao < tamanho)
+    {
+        HuffNode *noAtual = raiz;
+
+        while (noAtual->esq || noAtual->dir)
+            noAtual = geraBit(entrada, posicao++, &aux) ? noAtual->dir : noAtual->esq;
+
+        fwrite(&(noAtual->letra), 1, 1, saida);
+    }
+
+    fseek(entrada, 0L, SEEK_END);
+    double tamanhoEntrada = ftell(entrada);
+
+    fseek(saida, 0L, SEEK_END);
+    double tamanhoSaida = ftell(saida);
+
+    printf("\n\nArquivo de entrada: %s (%g bytes)\nArquivo de saida: %s (%g bytes)\n", entrada, tamanhoEntrada / 1000, saida, tamanhoSaida / 1000);
+
+    desalocarArvHuffman(raiz);
+
+    fclose(saida);
+    fclose(entrada);
+}
+
+
+int main()
+{
+    setlocale(LC_ALL, "Portuguese");
+    printf("\nCompactador e Descompactador\n");
+
+    printf("Operacao: \n\n");
+    printf("1 - Compactar Arquivo\n");
+    printf("2 - Descompactar Arquivo\n");
+    printf("3 - Sair\n\n");
+
+    printf("Digite sua opção : ");
+
+    char opcao;
+    scanf("%c", &opcao);
+
+    switch (opcao)
+    {
+        case '1':
+            compactar();
+            break;
+
+        case '2':
+            descompactar();
+            break;
+
+        case '3':
+            printf("\nEncerrando programa . . . \n\n");
+            break;
+
+        default:
+            printf("\nOpção de operacao inválida\n\n");
+            break;
+
+        return 0;
+    }
 }

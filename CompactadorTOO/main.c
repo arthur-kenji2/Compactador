@@ -96,21 +96,6 @@ void insereLista(noLista *n, lista *l)
     l->qtd++;
 }
 
-noArvore *diminuiLista(lista *l)
-{
-    noLista *noL = l->head;
-    noArvore *noArv = noL->no;
-
-    l->head = noL->prox;
-
-    free(noL);
-    noL = NULL;
-
-    l->qtd--;
-
-    return noArv;
-}
-
 noArvore *construirArvHuffman(unsigned *lst)
 {
     lista l = {NULL, 0};
