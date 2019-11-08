@@ -301,42 +301,49 @@ void ErroArq()
 
 void Escolher()
 {
-    printf("Digite o numero da opção desejada: ");
 
-    char opcao;
-    scanf("%c", &opcao);
+    bool acabou = false;
 
-    switch (opcao)
+    while(acabou == false)
     {
-        case '1':
-            CompactarArq();
-            printf("\n\nDeseja continuar? (s/n) : ");
-            scanf("%c", &opcao);
-            opcao = getchar();
-            if(opcao == 's')
-                Escolher();
-            else
+        printf("Digite o numero da opção desejada: ");
+
+        char opcao = ' ';
+        scanf("%c", &opcao);
+
+        switch (opcao)
+        {
+            case '1':
+                CompactarArq();
+                printf("\n\nDeseja continuar? (s/n) : ");
+                scanf("%c", &opcao);
+                opcao = getchar();
+                if(opcao == 's')
+                    acabou = false;
+                else
+                    break;
+
+            case '2':
+                DescompactarArq();
+                printf("\n\nDeseja continuar? (s/n) : ");
+                scanf("%c", &opcao);
+                opcao = getchar();
+                if(opcao == 's')
+                    acabou = false;
+                else
+                    break;
+
+            case '9':
+                printf("\Saindo... \n\n");
+                acabou = true;
                 break;
 
-        case '2':
-            DescompactarArq();
-            printf("\n\nDeseja continuar? (s/n) : ");
-            scanf("%c", &opcao);
-            opcao = getchar();
-            if(opcao == 's')
-                Escolher();
-            else
+            default:
+                printf("\Valor inválido\n\n");
+                acabou = true;
                 break;
-
-        case '9':
-            printf("\Saindo... \n\n");
-            break;
-
-        default:
-            printf("\Valor inválido\n\n");
-            break;
+        }
     }
-
 }
 
 
