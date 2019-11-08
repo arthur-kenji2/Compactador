@@ -31,20 +31,7 @@ void erroArquivo()
 
 }
 
-void FreeHuffmanTree(HuffNode *n)
-{
-    if (!n)
-        return;
-    else
-    {
-        free(n);
-
-        FreeHuffmanTree(&n->esq);
-        FreeHuffmanTree(&n->dir);
-    }
-}
-
-HuffNode *remover(Lista *l)
+HuffNode *Remover(Lista *l)
 {
     noLista *no = l->head;
     HuffNode *noArv = no->dado;
@@ -59,7 +46,7 @@ HuffNode *remover(Lista *l)
     return noArv;
 }
 
-void insereLista(noLista *n, Lista *l)
+void Inserir(noLista *n, Lista *l)
 {
     if (!l->head)
         l->head = n;
@@ -87,7 +74,7 @@ void insereLista(noLista *n, Lista *l)
     l->tamanho++;
 }
 
-noLista *novoNoLista(HuffNode *noArv)
+noLista *NovoNoLista(HuffNode *noArv)
 {
     noLista *novo;
     if ((novo = malloc(sizeof(*novo))) == NULL) return NULL;
@@ -99,7 +86,7 @@ noLista *novoNoLista(HuffNode *noArv)
     return novo;
 }
 
-HuffNode *novoNo(unsigned char c, int freq, HuffNode *esq, HuffNode *dir)
+HuffNode *NovoNo(unsigned char c, int freq, HuffNode *esq, HuffNode *dir)
 {
     HuffNode *novo;
     if ((novo = malloc(sizeof(*novo))) == NULL)return NULL;
@@ -112,35 +99,35 @@ HuffNode *novoNo(unsigned char c, int freq, HuffNode *esq, HuffNode *dir)
     return novo;
 }
 
-HuffNode *construirArvore(unsigned *l)
+HuffNode *CriarArvore(unsigned *l)
 {
     Lista lista = {NULL, 0};
 
     for (int i = 0; i < 256; i++)
         if (l[i] == NULL)
-            insereLista(novoNoLista(novoNo(i, l[i], NULL, NULL)), &lista);
+            Inserir(NovoNoLista(NovoNo(i, l[i], NULL, NULL)), &lista);
 
     while (lista.tamanho > 1)
     {
-        HuffNode *esq = remover(&lista);
-        HuffNode *dir = remover(&lista);
+        HuffNode *esq = Remover(&lista);
+        HuffNode *dir = Remover(&lista);
 
-        HuffNode *soma = novoNo('#', esq->freq + dir->freq, esq, dir);
+        HuffNode *soma = NovoNo('#', esq->freq + dir->freq, esq, dir);
 
-        insereLista(novoNoLista(soma), &lista);
+        Inserir(NovoNoLista(soma), &lista);
     }
 
-    return remover(&lista);
+    return Remover(&lista);
 }
 
-int geraBit(FILE *arqEnt, int pos, unsigned char *aux )
+int PrepararBit(FILE *arqEnt, int pos, unsigned char *aux )
 {
     (pos % 8 == 0) ? fread(aux, 1, 1, arqEnt) : NULL == NULL ;
 
     return !!((*aux) & (1 << (pos % 8)));
 }
 
-bool codigoByte(HuffNode *no, unsigned char c, char *buffer, int tamanho)
+bool CodigoDoByte(HuffNode *no, unsigned char c, char *buffer, int tamanho)
 {
     if (!(no->esq || no->dir) && no->letra == c)
     {
@@ -154,13 +141,13 @@ bool codigoByte(HuffNode *no, unsigned char c, char *buffer, int tamanho)
         if (no->esq)
         {
             buffer[tamanho] = '0';
-            encontrado = codigoByte(no->esq, c, buffer, tamanho + 1);
+            encontrado = CodigoDoByte(no->esq, c, buffer, tamanho + 1);
         }
 
         if (!encontrado && no->dir)
         {
             buffer[tamanho] = '1';
-            encontrado = codigoByte(no->dir, c, buffer, tamanho + 1);
+            encontrado = CodigoDoByte(no->dir, c, buffer, tamanho + 1);
         }
 
         if (!encontrado)
@@ -170,7 +157,7 @@ bool codigoByte(HuffNode *no, unsigned char c, char *buffer, int tamanho)
     }
 }
 
-void desalocarArvHuffman(HuffNode *no)
+void DesalocarArvore(HuffNode *no)
 {
     if (!no)
         return;
@@ -180,24 +167,24 @@ void desalocarArvHuffman(HuffNode *no)
         HuffNode *dir= no->dir;
         free(no);
 
-        desalocarArvHuffman(esq);
-        desalocarArvHuffman(dir);
+        DesalocarArvore(esq);
+        DesalocarArvore(dir);
     }
 }
 
-void compactar()
+void CompactarArq()
 {
     char arqEntrada[40];
     char arqSaida[40];
 
-    printf("\n\nDigite o nome do arquivo que será compactado: ");
+    printf("\n\nPor favor, escreva o arquivo para ser compactado: ");
     scanf("%s", arqEntrada);
 
     FILE *entrada = fopen(arqEntrada, "rb");
     if(entrada == NULL)
         erroArquivo();
 
-    printf("\n\nDigite o nome do arquivo em que o arquivo original sera compactado: ");
+    printf("\n\nPor favor, escreva o arquivo de saida no qual receberá o arquivo compactado: ");
     scanf("%s", arqSaida);
 
     byte b;
@@ -208,7 +195,7 @@ void compactar()
 
     rewind(entrada);
 
-    HuffNode *raiz = construirArvore(listaFreqBytes);
+    HuffNode *raiz = CriarArvore(listaFreqBytes);
 
     FILE *saida = fopen(arqSaida, "wb");
     if(saida == NULL)
@@ -224,7 +211,7 @@ void compactar()
     while (fread(&c, 1, 1, entrada) >= 1)
     {
         char buffer[1024] = {0};
-        codigoByte(raiz, c, buffer, 0);
+        CodigoDoByte(raiz, c, buffer, 0);
 
         for (char *i = buffer; *i; i++)
         {
@@ -253,33 +240,33 @@ void compactar()
 
     printf("\n\nArquivo de entrada: %s (%g bytes)\nArquivo de saida: %s (%g bytes)\n\n", arqEntrada, tamanhoEntrada / 1000, arqSaida, tamanhoSaida / 1000);
 
-    desalocarArvHuffman(raiz);
+    DesalocarArvore(raiz);
 
     fclose(saida);
     fclose(entrada);
 
 }
 
-int descompactar()
+int DescompactarArq()
 {
     FILE *entrada;
     char arqEntrada[40];
     char arqSaida[40];
     unsigned listaFreqBytes[256] = {0};
 
-    printf("\nDigite o nome do arquivo que esta compactado: ");
+    printf("\nPor favor, escreva o arquivo para ser decompactado: ");
     scanf("%s", arqEntrada);
 
     entrada = fopen(arqEntrada, "rb");
     if (entrada == NULL)
         erroArquivo();
 
-    printf("\nDigite o nome do arquivo em que o arquivo original sera descompactado: ");
+    printf("\nPor favor, escreva o arquivo de saida no qual receberá as informações do arquivo a ser descompactado: ");
     scanf("%s", arqSaida);
 
     fread(listaFreqBytes, 256, sizeof(listaFreqBytes[0]), entrada);
 
-    HuffNode *raiz = construirArvore(listaFreqBytes);
+    HuffNode *raiz = CriarArvore(listaFreqBytes);
 
     unsigned tamanho;
     fread(&tamanho, 1, sizeof(tamanho), entrada);
@@ -296,7 +283,7 @@ int descompactar()
         HuffNode *noAtual = raiz;
 
         while (noAtual->esq || noAtual->dir)
-            noAtual = geraBit(entrada, posicao++, &aux) ? noAtual->dir : noAtual->esq;
+            noAtual = PrepararBit(entrada, posicao++, &aux) ? noAtual->dir : noAtual->esq;
 
         fwrite(&(noAtual->letra), 1, 1, saida);
     }
@@ -309,7 +296,7 @@ int descompactar()
 
     printf("\n\nArquivo de entrada: %s (%g bytes)\nArquivo de saida: %s (%g bytes)\n", entrada, tamanhoEntrada / 1000, saida, tamanhoSaida / 1000);
 
-    desalocarArvHuffman(raiz);
+    DesalocarArvore(raiz);
 
     fclose(saida);
     fclose(entrada);
@@ -321,12 +308,12 @@ int main()
     setlocale(LC_ALL, "Portuguese");
     printf("\nCompactador e Descompactador\n");
 
-    printf("Operacao: \n\n");
+    printf("MENU: \n\n");
     printf("1 - Compactar Arquivo\n");
     printf("2 - Descompactar Arquivo\n");
     printf("3 - Sair\n\n");
 
-    printf("Digite sua opção : ");
+    printf("Digite o numero da opção desejada : ");
 
     char opcao;
     scanf("%c", &opcao);
@@ -334,19 +321,19 @@ int main()
     switch (opcao)
     {
         case '1':
-            compactar();
+            CompactarArq();
             break;
 
         case '2':
-            descompactar();
+            DescompactarArq();
             break;
 
         case '3':
-            printf("\nEncerrando programa . . . \n\n");
+            printf("\nSaindo... \n\n");
             break;
 
         default:
-            printf("\nOpção de operacao inválida\n\n");
+            printf("\Valor inválido\n\n");
             break;
 
         return 0;
